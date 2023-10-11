@@ -54,3 +54,21 @@
   color: red;
   border: 1px solid red
 }
+  
+.not-selected:hover{
+  background-color: rgb(239, 237, 237);
+}
+
+.ads-row{
+  margin-top: 0px !important;
+  border-top: 1px solid rgb(214, 214, 214);
+  border-bottom: 1px solid rgb(214, 214, 214);
+}
+
+.ads-row:nth-child(n + 2){
+  border-top: none;
+}
+
+.selected{
+  background-color: rgba(245, 0, 87, 0.08);
+}

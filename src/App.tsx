@@ -10,7 +10,7 @@ import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import './App.css';
 import SubCampaign from './components/SubCampaign';
 
@@ -62,7 +62,6 @@ function a11yProps(index: number) {
 }
 
 const App = () => {
-
   const [valueTab, setValueTab] = React.useState(0);
   const [subCampaigns, setSubCampaigns] = useState<SubCampaignInterface[]>([{
     id: 1,
@@ -77,32 +76,207 @@ const App = () => {
       },
 
     ]
-}])
+  }])
   const [currentCampaign, setCurrentCampaign] = useState(subCampaigns[0] || null)
-
   const [selected, setSelected] = useState<string[]>([])
+
 
   const {
     register,
-    control,
     formState: { errors },
     handleSubmit,
     setValue,
-  } = useForm({
-    mode: "onBlur"
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    name: "cart",
-    control
-  });
+  } = useForm();
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValueTab(newValue);
   };
 
   const onSubmitHandler = (values: any) => {
-    alert('Thành công', ) 
+    alert( JSON.stringify(subCampaigns))
+  }
+
+  const handleAddNew = () => {
+    setCurrentCampaign({
+      id: subCampaigns.length + 1,
+      title: `Chiến dịch con ${subCampaigns.length + 1}`,
+      isActive: true,
+      quantity: 0,
+      ads: [
+        {
+          id: Math.random(),
+          name: 'Quảng cáo 1',
+          quantity: 0
+        },
+
+      ]
+    })
+      setSubCampaigns([...subCampaigns, {
+          id: subCampaigns.length + 1,
+          title: `Chiến dịch con ${subCampaigns.length + 1}`,
+          isActive: true,
+          quantity: 0,
+          ads: [
+            {
+              id: Math.random(),
+              name: 'Quảng cáo 1',
+              quantity: 0
+            },
+      
+          ]
+      }])
+
+  }
+
+  const handleSelectCurrentCampaign = (currentC: SubCampaignInterface) => {
+    setCurrentCampaign(currentC)
+  }
+
+  const handelChangeActive = (e : any) => {
+    const newItem = {
+      ...currentCampaign,
+      isActive: e.target.checked
+    }
+    const newArray = subCampaigns
+    newArray.splice((currentCampaign.id - 1) , 1 ,  newItem)
+    setCurrentCampaign(newItem)
+    setSubCampaigns(newArray)
+  }
+
+  const handelChangeName = (e: any) => {
+    const newItem = {
+      ...currentCampaign,
+      title: e.target.value
+    }
+
+    const newArray = subCampaigns
+    newArray.splice((currentCampaign.id - 1) , 1 ,  newItem)
+    setSubCampaigns(newArray)
+    setCurrentCampaign(newItem)
+  }
+
+  const handleAddAds = () => {
+    const newItem = {
+      ...currentCampaign,
+      ads: [
+        ...currentCampaign.ads,
+        {
+          id: Math.random(),
+          name: `Quảng cáo ${currentCampaign.ads.length + 1}`,
+          quantity: 0
+        }
+      ]
+    }
+    const newArray = subCampaigns
+    newArray.splice((currentCampaign.id - 1) , 1 ,  newItem)
+    setCurrentCampaign(newItem)
+    setSubCampaigns(newArray)
+    setSelected([])
+  }
+
+  const handelChangeAll = (e: any) => {
+    if (e.target.checked) {
+      setSelected(currentCampaign?.ads?.map((item: AdsInterface) => item?.id.toString()))
+      for (let index = 0; index < currentCampaign.ads.length; index++) {
+        setValue(`subCampaignAdsCheck${index}`, true)
+      }
+    }else{
+      setSelected([])
+      for (let index = 0; index < currentCampaign.ads.length; index++) {
+        setValue(`subCampaignAdsCheck${index}`, false)
+      }
+    }
+
+  }
+
+  const handleSelectAds = (id: number) => {
+    if (!selected.includes(id.toString())) {
+      setSelected([...selected, id.toString()])
+    }else{
+      const newSelect = selected.filter(item => item !== id.toString());
+      setSelected(newSelect)
+    }
+    
+  }
+
+  const handleChangeAdsName = (e : any, item: AdsInterface) => {
+    const newItemAds = {
+      ...item,
+      name: e.target.value
+    }
+
+    const newArray = currentCampaign.ads
+    newArray.splice((currentCampaign.ads.indexOf(item)) , 1 ,  newItemAds)
+
+    const newItemSubCampaign = {
+      ...currentCampaign,
+      ads: [...newArray]
+    }
+
+    const newArrayCampaigns = subCampaigns
+    newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
+    setSubCampaigns(newArrayCampaigns)
+    setCurrentCampaign(newItemSubCampaign)
+  }
+
+  const handleChangeAdsQuantity = (e: any, item: AdsInterface) => {
+    const newItemAds = {
+      ...item,
+      quantity: e.target.value
+    }
+
+    const newArray = currentCampaign.ads
+    newArray.splice((currentCampaign.ads.indexOf(item)) , 1 ,  newItemAds)
+
+    const newItemSubCampaign = {
+      ...currentCampaign,
+      quantity: 120,
+      ads: [...newArray]
+    }
+
+    const newArrayCampaigns = subCampaigns
+    newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
+    setSubCampaigns(newArrayCampaigns)
+    setCurrentCampaign(newItemSubCampaign)
+  }
+
+  const handleDeleteAds = (id: number) => {
+    const newArray = currentCampaign.ads.filter(item => item.id.toString() !== id.toString())
+    const newItemSubCampaign = {
+      ...currentCampaign,
+      ads: [...newArray]
+    }
+    const newArrayCampaigns = subCampaigns
+    newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
+    setSubCampaigns(newArrayCampaigns)
+    setCurrentCampaign(newItemSubCampaign)
+
+  }
+
+  const handleMultiDeleteAds  = () => {
+
+    const newArray = currentCampaign.ads
+      for( let i = 0; i < selected.length; i++){ 
+        let index = currentCampaign.ads.findIndex(x => x.id.toString() === selected[i].toString())
+        newArray.splice(index, 1)
+      }
+
+    const newItemSubCampaign = {
+      ...currentCampaign,
+      ads: [...newArray]
+    }
+
+    const newArrayCampaigns = subCampaigns
+    newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
+    setSubCampaigns(newArrayCampaigns)
+    setCurrentCampaign(newItemSubCampaign)
+
+    for (let index = 0; index < currentCampaign.ads.length; index++) {
+        setValue(`subCampaignAdsCheck${index}`, false)
+    }
+    setSelected([])
+    setValue('checkAll', false)
+
   }
 
   useEffect(() => {
@@ -111,45 +285,7 @@ const App = () => {
     }
   }, [errors.campaignName, errors.subCampaignName])
 
-  
-
-const handleAddNew = () => {
-  setCurrentCampaign({
-    id: subCampaigns.length + 1,
-    title: `Chiến dịch con ${subCampaigns.length + 1}`,
-    isActive: true,
-    quantity: 0,
-    ads: [
-      {
-        id: Math.random(),
-        name: 'Quảng cáo 1',
-        quantity: 0
-      },
-
-    ]
-  })
-    setSubCampaigns([...subCampaigns, {
-        id: subCampaigns.length + 1,
-        title: `Chiến dịch con ${subCampaigns.length + 1}`,
-        isActive: true,
-        quantity: 0,
-        ads: [
-          {
-            id: Math.random(),
-            name: 'Quảng cáo 1',
-            quantity: 0
-          },
-    
-        ]
-    }])
-
-}
-
-const handleSelectCurrentCampaign = (currentC: SubCampaignInterface) => {
-  setCurrentCampaign(currentC)
-}
-
-useEffect(() => {
+  useEffect(() => {
     if (currentCampaign) {
       setValue('subCampaignName', currentCampaign.title)
       setValue('subCampaignActive', currentCampaign.isActive)
@@ -158,197 +294,48 @@ useEffect(() => {
           setValue(`subCampaignAdsName${index}`, element.name)
           setValue(`subCampaignAdsNumber${index}`, element.quantity)
       }
-     
     }
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [currentCampaign])
+    setSelected([])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCampaign])
 
-
-useEffect(() => {
+  useEffect(() => {
   if (selected.length > 0) {
     setValue('checkAll', true)
   }else{
     setValue('checkAll', false)
   }
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [selected])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected])
 
+  useEffect(() => {
 
+    const arrayQuantity = currentCampaign.ads.map((item: AdsInterface) => item.quantity)
 
-const handelChangeActive = (e : any) => {
-  const newItem = {
-    ...currentCampaign,
-    isActive: e.target.checked
-  }
-  const newArray = subCampaigns
-  newArray.splice((currentCampaign.id - 1) , 1 ,  newItem)
-  setCurrentCampaign(newItem)
-  setSubCampaigns(newArray)
-}
-
-const handelChangeName = (e: any) => {
-  const newItem = {
-    ...currentCampaign,
-    title: e.target.value
-  }
-
-  const newArray = subCampaigns
-  newArray.splice((currentCampaign.id - 1) , 1 ,  newItem)
-  setSubCampaigns(newArray)
-  setCurrentCampaign(newItem)
-}
-
-const handleAddAds = () => {
-  const newItem = {
-    ...currentCampaign,
-    ads: [
-      ...currentCampaign.ads,
-      {
-        id: Math.random(),
-        name: `Quảng cáo ${currentCampaign.ads.length + 1}`,
-        quantity: 0
-      }
-    ]
-  }
-  const newArray = subCampaigns
-  newArray.splice((currentCampaign.id - 1) , 1 ,  newItem)
-  setCurrentCampaign(newItem)
-  setSubCampaigns(newArray)
-}
-
-useEffect(() => {
-  for (let index = 0; index < currentCampaign.ads.length; index++) {
-    setValue(`subCampaignAdsCheck${index}`, false)
-  }
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [currentCampaign.ads.length])
-
-const handelChangeAll = (e: any) => {
-  if (e.target.checked) {
-    setSelected(currentCampaign?.ads?.map((item: AdsInterface) => item?.id.toString()))
-    for (let index = 0; index < currentCampaign.ads.length; index++) {
-      setValue(`subCampaignAdsCheck${index}`, true)
+    let sum = 0;
+    for (let i = 0; i < arrayQuantity.length;i++){
+        sum += Number(arrayQuantity[i]);
     }
-  }else{
-    setSelected([])
+
+    const newItemSubCampaign = {
+      ...currentCampaign,
+      quantity: sum
+    }
+
+    const newArrayCampaigns = subCampaigns
+    newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
+    setSubCampaigns(newArrayCampaigns)
+    setCurrentCampaign(newItemSubCampaign)
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCampaign.ads])
+
+  useEffect(() => {
     for (let index = 0; index < currentCampaign.ads.length; index++) {
       setValue(`subCampaignAdsCheck${index}`, false)
     }
-  }
-
-}
-
-const handleSelectAds = (id: number) => {
-  if (!selected.includes(id.toString())) {
-    setSelected([...selected, id.toString()])
-  }else{
-    const newSelect = selected.filter(item => item !== id.toString());
-    setSelected(newSelect)
-  }
-  
-}
-
-const handleChangeAdsName = (e : any, item: AdsInterface) => {
-  const newItemAds = {
-    ...item,
-    name: e.target.value
-  }
-
-  const newArray = currentCampaign.ads
-  newArray.splice((item.id - 1) , 1 ,  newItemAds)
-
-  const newItemSubCampaign = {
-    ...currentCampaign,
-    ads: [...newArray]
-  }
-
-  const newArrayCampaigns = subCampaigns
-  newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
-  setSubCampaigns(newArrayCampaigns)
-  setCurrentCampaign(newItemSubCampaign)
-}
-
-const handleChangeAdsQuantity = (e: any, item: AdsInterface) => {
-  const newItemAds = {
-    ...item,
-    quantity: e.target.value
-  }
-
-  const newArray = currentCampaign.ads
-  newArray.splice((currentCampaign.ads.indexOf(item)) , 1 ,  newItemAds)
-
-  const newItemSubCampaign = {
-    ...currentCampaign,
-    quantity: 120,
-    ads: [...newArray]
-  }
-
-  const newArrayCampaigns = subCampaigns
-  newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
-  setSubCampaigns(newArrayCampaigns)
-  setCurrentCampaign(newItemSubCampaign)
-}
-
-const handleDeleteAds = (id: number) => {
-  const newArray = currentCampaign.ads.filter(item => item.id.toString() !== id.toString())
-  const newItemSubCampaign = {
-    ...currentCampaign,
-    ads: [...newArray]
-  }
-  const newArrayCampaigns = subCampaigns
-  newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
-  setSubCampaigns(newArrayCampaigns)
-  setCurrentCampaign(newItemSubCampaign)
-
-}
-
-useEffect(() => {
-
-  const arrayQuantity = currentCampaign.ads.map((item: AdsInterface) => item.quantity)
-
-  let sum = 0;
-  for (let i = 0; i < arrayQuantity.length;i++){
-      sum += Number(arrayQuantity[i]);
-  }
-
-  const newItemSubCampaign = {
-    ...currentCampaign,
-    quantity: sum
-  }
-
-  const newArrayCampaigns = subCampaigns
-  newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
-  setSubCampaigns(newArrayCampaigns)
-  setCurrentCampaign(newItemSubCampaign)
-
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [currentCampaign.ads])
-
-const handleMultiDeleteAds  = () => {
-
-  const newArray = currentCampaign.ads
-    for( let i = 0; i < selected.length; i++){ 
-      let index = currentCampaign.ads.findIndex(x => x.id.toString() === selected[i].toString())
-      newArray.splice(index, 1)
-    }
-
-  const newItemSubCampaign = {
-    ...currentCampaign,
-    ads: [...newArray]
-  }
-
-  const newArrayCampaigns = subCampaigns
-  newArrayCampaigns.splice((currentCampaign.id - 1) , 1 ,  newItemSubCampaign)
-  setSubCampaigns(newArrayCampaigns)
-  setCurrentCampaign(newItemSubCampaign)
-
-  for (let index = 0; index < currentCampaign.ads.length; index++) {
-      setValue(`subCampaignAdsCheck${index}`, false)
-  }
-  setSelected([])
-  setValue('checkAll', false)
-
-}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCampaign.ads.length])
 
 
   return (
@@ -393,7 +380,7 @@ const handleMultiDeleteAds  = () => {
                         })}
                         
                     </div>
-                    <Grid container spacing={2} style={{paddingTop: 20}}>
+                    <Grid container spacing={2} style={{paddingTop: 20, }}>
                       <Grid item xs={8}>
                         <FormControl style={{width: '100%'}}>
                         <TextField id='subCampaignName'  error={errors.subCampaignName && !errors.subCampaignName?.message} {...register('subCampaignName', {
@@ -402,24 +389,24 @@ const handleMultiDeleteAds  = () => {
                         </FormControl>
                       </Grid>
                       <Grid item xs={4} style={{display:'flex', alignItems:'center', justifyContent:'center'}}>
-                        <TextField id='subCampaignActive' type='checkbox' {...register('subCampaignActive')} name='subCampaignActive'  className='check-box-input' style={{paddingRight: 10}} onChange={handelChangeActive}/>
+                        <TextField id='subCampaignActive' type='checkbox' {...register('subCampaignActive')} name='subCampaignActive'  className='check-box-input' style={{paddingRight: 10, cursor:'pointer'}} onChange={handelChangeActive}/>
                         <span>Đang hoạt động</span>
                       </Grid>
                     </Grid>
                     <h3>DANH SÁCH QUẢNG CÁO</h3>
 
-                    <Grid container spacing={2} style={{paddingTop: 20}}>
+                    <Grid container spacing={2} style={{paddingTop: 20, paddingBottom: 10}}>
                       <Grid item xs={1}>
                         
                         {selected.length === currentCampaign.ads.length || selected.length === 0 ? 
-                        <TextField id='checkAll' type='checkbox' {...register('checkAll')} name='checkAll'  className='check-box-input'  onChange={handelChangeAll}/>
+                        <TextField id='checkAll' type='checkbox' {...register('checkAll')} name='checkAll'  className='check-box-input'  onChange={handelChangeAll} style={{cursor:'pointer'}}/>
                         : 
-                        <IconButton aria-label="checkAll" onClick={handelChangeAll} style={{padding: 0}}>
+                        <IconButton aria-label="checkAll" onClick={handelChangeAll} style={{padding: 0, cursor:'pointer'}}>
                             <IndeterminateCheckBoxIcon />
                         </IconButton> 
                         }
                       </Grid>
-                      <Grid item xs={4}>
+                      <Grid item xs={4} >
                         {selected.length > 0 ? 
                         <IconButton aria-label="delete" onClick={handleMultiDeleteAds}>
                             <DeleteIcon />
@@ -435,15 +422,15 @@ const handleMultiDeleteAds  = () => {
                         </Button>
                       </Grid>
                     </Grid>
-
+                         
                     {currentCampaign.ads.length > 0 && currentCampaign.ads.map((item, index) => {
                       return (
-                        <Grid container spacing={2} style={{paddingTop: 20}}>
+                        <Grid container spacing={2}  className={`ads-row ${selected.includes(item.id.toString()) ? 'selected' : 'not-selected'}`} key={item.id}>
                           <Grid item xs={1}>
-                            <TextField type='checkbox' {...register(`subCampaignAdsCheck${index}`)} name={`subCampaignAdsCheck${index}`}  className='check-box-input' onChange={() => handleSelectAds(item?.id)}/>
+                            <TextField type='checkbox' {...register(`subCampaignAdsCheck${index}`)} name={`subCampaignAdsCheck${index}`}  className='check-box-input' onChange={() => handleSelectAds(item?.id)} style={{cursor:'pointer'}}/>
                           </Grid>
                           <Grid item xs={4}>
-                            <TextField  style={{width: '100%'}} id={`subCampaignAdsName${index}`} {...register(`subCampaignAdsName${index}`)} name={`subCampaignAdsName${index}`}  variant="standard"  onChange={(e) => handleChangeAdsName(e, item)}/>
+                            <TextField  style={{width: '100%'}} {...register(`subCampaignAdsName${index}`)} name={`subCampaignAdsName${index}`}  variant="standard"  onChange={(e) => handleChangeAdsName(e, item)}/>
                           </Grid>
                           <Grid item xs={5}>
                             <TextField  style={{width: '100%'}} type='number' {...register(`subCampaignAdsNumber${index}`)} name={`subCampaignAdsNumber${index}`} variant="standard"  className='check-box-input' onChange={(e) => handleChangeAdsQuantity(e, item)}/>
